@@ -7,22 +7,44 @@ using System.IO;
 
 namespace MODEL_CODE
 {
-    class GameEngine //where the magic happens... and most of the corrections
+    class GameEngine 
     {
         public static Random random = new Random();
 
         Map map; //filed for map
+        UnitAndBuildingManager manager;
+
         bool gameOver = false; //set to true if game ends
         string winning = ""; //winning faction string
         int round = 0;
+        string[] factions = { A_TEAM, B_TEAM, WIZARDS };
+
+        const string A_TEAM = "A-Team";
+        const string B_TEAM = "B-Team";
+        const string WIZARDS = "Wizards";
+
+        //Share a single Random object across all classes.
+        //eg. GameEngine.random.Next(5);
+
+        int loadedMapWidth; //for loading map width;
+        int loadedMapHeight; //for loading map height;
+
 
         const string UNITS_FILENAME = "units.txt";
-        const string BUILDINGS_FILENAME = "buildings.txt";
-        const string ROUND_FILENAME = "rounds.txt"; //makes sure round is consistent
+        const string BUIDLINGS_FILENAME = "buildings.txt";
+        const string ROUND_FILENAME = "rounds.txt";
 
-        public GameEngine()
+
+        //////////
+
+
+        public GameEngine(int width, int height) //pass variables for map class through constructor, 
+                                                 //cont. pass the constants in the map class
         {
-            map = new Map(10, 4); //making map
+            Reset(width, height);
+            //map = new Map(width, height);
+            //manager = new UnitAndBuildingManager();
+            //CreateUnitsAndBuildings();
         }
 
         public bool GameOver
@@ -40,7 +62,7 @@ namespace MODEL_CODE
             get { return round; }
         }
 
-        public int RandomNumberOfUnits
+        /*public int RandomNumberOfUnits
         {
             get { return map.Units.Length; }
         }
@@ -53,32 +75,52 @@ namespace MODEL_CODE
         public string MapDisplay
         {
             get { return map.DisplayMap(); }
-        }
-        ///
-        
-      
+        }*/
 
-        public void Reset() //reset the map for a new simulation
+        public int LoadedMapWidth
         {
-            map.Reset();
-            gameOver = false;
+            get { return loadedMapWidth; }
+        }
+
+        public int LoadedMapHeight
+        {
+            get { return loadedMapHeight; }
+        }
+
+        public void Reset(int width, int height)
+        {
+            map = new Map(width, height);
+            manager = new UnitAndBuildingManager();
+
+            CreateUnitsAndBuildings();
+            map.UpdateMap(manager);
+
+            isGameOver = false;
             round = 0;
         }
 
-        public void SaveGame2() //saving the actual game to the file
+        public void SaveGame()
         {
-            Save(UNITS_FILENAME, map.Units);
-            Save(BUILDINGS_FILENAME, map.Buildings);
-            SaveRound();
+            Save(UNITS_FILENAME, manager.Units.ToArray());
+            Save(BUIDLINGS_FILENAME, manager.Buildings.ToArray());
+            SaveSettings();
         }
 
         public void LoadGame()
         {
-            map.Clear();
-            Load(UNITS_FILENAME); //will load the objects onto the map
-            Load(BUILDINGS_FILENAME);
-            LoadRound();
-            map.UpdateDisplay();
+            LoadSettings();
+
+            map = new Map(loadedMapWidth, loadedMapHeight);
+            manager = new UnitAndBuildingManager();
+            foreach (string faction in factions)
+            {
+                manager.AddFaction(faction);
+            }
+
+            Load(UNITS_FILENAME);
+            Load(BUIDLINGS_FILENAME);
+
+            map.UpdateMap(manager);
         }
 
         private void Load(string filename)
@@ -105,13 +147,57 @@ namespace MODEL_CODE
             reader.Close();
             inFile.Close();
         }
+
+        private void Save(string filename, object[] objects)
+        {
+            FileStream outFile = new FileStream(filename, FileMode.Create, FileAccess.Write);
+            StreamWriter writer = new StreamWriter(outFile);
+            foreach (object o in objects)
+            {
+                if (o is Unit) //if object is a unit
+                {
+                    Unit unit = (Unit)o;
+                    writer.WriteLine(unit.SaveGame());
+                }
+                else if (o is Building) //if object is a building
+                {
+                    Building unit = (Building)o;
+                    writer.WriteLine(unit.SaveGame());
+                }
+            }
+            writer.Close();
+            outFile.Close();
+        }
+
+        private void SaveSettings()
+        {
+            FileStream outFile = new FileStream(ROUND_FILENAME, FileMode.Create, FileAccess.Write);
+            StreamWriter writer = new StreamWriter(outFile);
+            writer.WriteLine(round);
+            writer.WriteLine(map.width);
+            writer.WriteLine(map.height);
+            writer.Close();
+            outFile.Close();
+        }
+
+        private void LoadSettings()
+        {
+            FileStream inFile = new FileStream(ROUND_FILENAME, FileMode.Open, FileAccess.Read);
+            StreamReader reader = new StreamReader(inFile);
+            round = int.Parse(reader.ReadLine());
+            loadedMapWidth = int.Parse(reader.ReadLine());
+            loadedMapHeight = int.Parse(reader.ReadLine());
+            reader.Close();
+            inFile.Close();
+        }
+
         ///
 
         public void GameLoop()
         {
             UpdateUnits(); //break it into sizeable chunks
             UpdateBuildings();
-            map.UpdateDisplay();
+            map.UpdateDisplay(manager);
             round++;
         }
 
@@ -280,26 +366,5 @@ namespace MODEL_CODE
 
 
         ///
-
-        private void Save(string filename, object[] objects)
-        {
-            FileStream outFile = new FileStream(filename, FileMode.Create, FileAccess.Write);
-            StreamWriter writer = new StreamWriter(outFile);
-            foreach(object o in objects) 
-            {
-                if(o is Unit) //if object is a unit
-                {
-                    Unit unit = (Unit)o;
-                    writer.WriteLine(unit.SaveGame());
-                }
-                else if(o is Building) //if object is a building
-                {
-                    Building unit = (Building)o;
-                    writer.WriteLine(unit.SaveGame());
-                }
-            }
-            writer.Close();
-            outFile.Close();
-        }
     }
 }
