@@ -61,7 +61,7 @@ namespace MODEL_CODE
 
         ///////////////////
        
-        public virtual void Destroy() //death method
+        public override void Destroy() //death method
         {
             Health = 0; //make certain health is 0
             isDestroyed = true;
@@ -83,7 +83,7 @@ namespace MODEL_CODE
             return false;
         }
 
-        public virtual void AttackBuilding(Building otherBuilding) //new
+        /*public virtual void AttackBuilding(Building otherBuilding) //new
         {
             isAttacking = true;
             otherBuilding.Health -= attack;
@@ -93,14 +93,13 @@ namespace MODEL_CODE
                 otherBuilding.Health = 0;
                 otherBuilding.Destroy();
             }
-        }
+        }*/
 
 
-        public virtual void Move(Unit closestUnit) //this method has been moved here from the other inherited building classes, and it has been expanded
+        public virtual void Move(Target closestTarget) //this method has been moved here from the other inherited building classes, and it has been expanded
         {
-            int moveX = closestUnit.X - X;
-
-            int moveY = closestUnit.Y - Y;
+            int moveX = closestTarget.X - X;
+            int moveY = closestTarget.Y - Y;
 
             if(Math.Abs(moveX) > Math.Abs(moveY))
             {
@@ -112,7 +111,7 @@ namespace MODEL_CODE
             }
         }
 
-        public virtual void MoveB(Building closestBuilding) //new
+       /* public virtual void MoveB(Building closestBuilding) //new
         {
             int moveX = closestBuilding.X - X;
 
@@ -126,7 +125,7 @@ namespace MODEL_CODE
             {
                 y += Math.Sign(moveY);
             }
-        }
+        }*/
 
         public virtual void Run()
         {
@@ -143,14 +142,14 @@ namespace MODEL_CODE
             {
                 y += 1; //if random is 2, move y + 1
             }
-            else if (direction == 3)
+            else
             {
                 y -= 1; //if random is 3, move y - 1
             }
         }
 
      
-
+/*
         public virtual Unit GetClosestUnit(Unit[] units)
         {
             double closestDistance = int.MaxValue;
@@ -193,14 +192,14 @@ namespace MODEL_CODE
                 }
             }
             return closestBuilding;
-        }
+        }*/
 
-        public virtual bool IsInRange(Unit otherUnit) //for calculating the closest unit
+        public virtual bool IsInRange(Target target) //for calculating the closest unit
         {
-            return GetDistance(otherUnit) <= attackRange;
+            return GetDistance(target) <= attackRange;
         }
 
-        public virtual bool IsInRangeBuilding(Building otherBuilding) //new
+        /*public virtual bool IsInRangeBuilding(Building otherBuilding) //new
         {
             return GetDistanceBuilding(otherBuilding) <= attackRange;
         }
@@ -228,7 +227,7 @@ namespace MODEL_CODE
             double xDistanceB = otherBuilding.X - X;
             double yDistanceB = otherBuilding.Y - Y;
             return Math.Sqrt(xDistanceB * xDistanceB + yDistanceB * yDistanceB);
-        }
+        }*/
 
         public override string ToString() //Rather place ToString here instead of dupicating it in other classes (Ranged & Melee)
         {
