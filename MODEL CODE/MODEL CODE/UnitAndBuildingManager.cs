@@ -181,6 +181,54 @@ namespace MODEL_CODE
             return targets; //return the ones that are actually targets
         }
 
+        public List<Unit> GetUnitsByFaction(string faction)
+        {
+            return units[faction]; //find all units in a specific faction
+        }
 
+        public List<Building> GetBuildingsByFaction(string faction)
+        {
+            return buildings[faction]; //find all buidlings in a specific faction
+        }
+
+        public int GetUnitsAliveCountByFaction(string faction)
+        {
+            int count = 0;
+            foreach (Unit unit in units[faction])
+            {
+                if (!unit.IsDestroyed)
+                {
+                    count++;
+                }
+            }
+            return count; //kill count units
+        }
+
+        public int GetBuildingsAliveCountByFaction(string faction)
+        {
+            int count = 0;
+            foreach (Building building in buildings[faction])
+            {
+                if (!building.IsDestroyed)
+                {
+                    count++;
+                }
+            }
+            return count; //kill count buildings
+        }
+
+        public bool AllUnitsDestroyed(string faction)
+        {
+            foreach (Unit unit in units[faction])
+            {
+                if (!unit.IsDestroyed)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
     }
 }
+
