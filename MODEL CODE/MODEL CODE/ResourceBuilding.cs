@@ -7,16 +7,15 @@ using System.IO;
 
 namespace MODEL_CODE
 {
+    public enum ResourceType
+    {
+        TWIGS,
+        GRASS,
+        ROCKS,
+        LOGS
+    }
     class ResourceBuilding : Building
     {
-        public enum ResourceType
-        {
-            TWIGS,
-            GRASS,
-            ROCKS,
-            LOGS
-        }
-
         private string DetermineResourceType()
         {
             return new string[] { "TWIGS", "GRASS", "ROCKS", "LOGS"}[(int)resourceType];
@@ -26,61 +25,57 @@ namespace MODEL_CODE
         public int resourcesGenerated;
         private int resourcesPerRound;
         private int resourcePoolRemaining;
-        private int spawnPoint; //for resourceBuildings spawning units
 
-        public ResourceBuilding(int x, int y, string faction) : base(x, y, 15, /*15,*/ '$', faction/*, "RESOURCE BUILDING", 0, 250, 25, "", 0, 0*/)
+        public ResourceBuilding(int x, int y, string faction) : base(x, y, 15, '$', faction)
         {
             resourceType = (ResourceType)GameEngine.random.Next(0, 4); //pass the position and faction to make it easier for map class to read
             resourcesGenerated = 0;
             resourcesPerRound = GameEngine.random.Next(1, 6);
             resourcePoolRemaining = GameEngine.random.Next(100, 200);
-
-            if (y >= Map.mapSize - 1)
-            {
-                spawnPoint = y - 1;
-            }
-            else
-            {
-                spawnPoint = y + 1;
-            }
         }
 
         public ResourceBuilding(string values)
         {
             string[] parameters = values.Split(','); //split strings into array of parameters
 
-            x = int.Parse(parameters[1]);
-
+            x = int.Parse(parameters[1]);       
             y = int.Parse(parameters[2]); //pass everything to int
-
             health = int.Parse(parameters[3]);
-
             maxHealth = int.Parse(parameters[4]);
-
             resourceType = (ResourceType)int.Parse(parameters[5]); //parse to int THEN resourceType
-
             resourcesPerRound = int.Parse(parameters[6]);
-
             resourcePoolRemaining = int.Parse(parameters[7]);
-
             faction = parameters[9];
-
             symbol = parameters[10][0]; //symbol is a char, returns the first character of the symbol 'string'
-
             isDestroyed = parameters[11] == "True" ? true : false; //makes sure are units are still dead during the reload
         }
 
         /////////////////////////
         
-        public override void Destroy() //death method to change unit symbol and true the death boolean
+        public int ResourcesGenerated
+        {
+            get { return resourcesGenerated; }
+            set { resourcesGenerated = value; }
+        }
+
+        public int ResourcePoolRemaining
+        {
+            get { return resourcePoolRemaining; }
+            set { resourcePoolRemaining = value; }
+        }
+
+        public override void Destroy()//death method to change unit symbol and true the death boolean
         {
             isDestroyed = true;
-            symbol = 'X';
+            resourcesGenerated = 0;
+            symbol = '_';
         }
+
+
 
         public void IncreaseResourceAmount()
         {
-            if (isDestroyed == true)
+            if (isDestroyed)
                 return;
 
             if(resourcePoolRemaining > 0)
@@ -89,27 +84,6 @@ namespace MODEL_CODE
                 resourcesGenerated += totalResources;
                 resourcePoolRemaining -= totalResources;
             }
-
-            if(resourcesGenerated == 50) //when reaching 50 of a resource, it is consumed in exchange for creating a unit
-            {
-                CreateResourceUnit();
-                resourcesGenerated -= 50;
-            }
-        }
-
-        public Unit CreateResourceUnit() //Resource Building makes a unit at 100 rss
-        {
-            Unit unit;
-            int decider = GameEngine.random.Next(0, 2);
-            if (decider == 0)
-            {
-                unit = new MeleeUnit(x, spawnPoint, faction); //moved here from map and program classes, efficiency
-            }
-            else
-            {
-                unit = new RangedUnit(x, spawnPoint, faction);
-            }
-            return unit;
         }
 
         public override string ToString() //data to dispay in the rich text box
@@ -130,3 +104,4 @@ namespace MODEL_CODE
         }
     }
 }
+//updated
