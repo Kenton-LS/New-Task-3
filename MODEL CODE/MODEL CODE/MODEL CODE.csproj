@@ -72,6 +72,7 @@
     <Compile Include="ResourceBuilding.cs" />
     <Compile Include="Target.cs" />
     <Compile Include="Unit.cs" />
+    <Compile Include="UnitAndBuildingManager.cs" />
     <Compile Include="WizardUnit.cs" />
     <EmbeddedResource Include="Form1.resx">
       <DependentUpon>Form1.cs</DependentUpon>

@@ -86,5 +86,101 @@ namespace MODEL_CODE
             buildings[building.Faction].Add(building);
         }
 
+        public virtual Target GetClosestTarget(Unit unit, string[] ignoreFactions, bool includeUnits = true, bool includeBuildings = true)
+        {
+            double closestDistance = int.MaxValue;
+            Target closestTarget = null;
+            //the below code creates a list of possible targets
+            List<Target> targets = GetPossibleTargets(ignoreFactions, includeUnits, includeBuildings);
+
+            //no need to check if we are attacking units or buildings of our own faction < NO FRIENDLY FIRE
+            //since we now only have a list of targets from other factions
+            foreach (Target target in targets)
+            {
+                if (target.IsDestroyed)
+                {
+                    continue;
+                }
+
+                double distance = unit.GetDistance(target);
+
+                if (distance < closestDistance)
+                {
+                    closestDistance = distance;
+                    closestTarget = target;
+                }
+            }
+
+            return closestTarget;
+        }
+
+        public List<Target> GetTargetsInArea(Target closestTarget, string[] ignoreFactions, bool includeUnits = true, bool includeBuildings = true)
+        {
+
+            List<Target> targets = new List<Target>();
+            targets.Add(closestTarget);
+
+            List<Target> possibleTargets = GetPossibleTargets(ignoreFactions, includeUnits, includeBuildings);
+
+            foreach (Target target in possibleTargets)
+            {
+                //skip target if it is destroyed
+                if (target.IsDestroyed || target == closestTarget)
+                {
+                    continue;
+                }
+                //skip target if it falls out of x range
+                if (target.X < closestTarget.X - 1 || target.X > closestTarget.X + 1)
+                {
+                    continue;
+                }
+                //skip target if it falls out of y range
+                if (target.Y < closestTarget.Y - 1 || target.Y > closestTarget.Y + 1)
+                {
+                    continue;
+                }
+                //if we're including units and this target is a unit
+                if (target is Unit && includeUnits)
+                {
+                    targets.Add(target);
+                }
+                //if we're including buildings and this target is a building
+                if (target is Building && includeBuildings)
+                {
+                    targets.Add(target);
+                }
+            }
+            return targets;
+        }
+        //if target is a unit, bool include the unit, include the building if true. else if false, ignore them
+        private List<Target> GetPossibleTargets(string[] ignoreFactions, bool includeUnits, bool includeBuildings)
+        {
+            //create a list of all the targets not in ignored factions
+            List<Target> targets = new List<Target>();
+
+            foreach (string faction in factions)
+            {
+                //targets in the ignore list are skipped
+                if (Array.IndexOf(ignoreFactions, faction) >= 0)
+                { //in ignoreFactions, it will return 'faction'
+                    //e.g. cont. x = [1, 5, 6, 10, 3]........Array.IndexOf(x, 6) --->  returns 2
+                    //therefore, ignoreFac means if value is <= 0, ignore it as it is not equal to array
+                    continue;
+                }
+                //include units in list if includeUnits is set to true
+                if (includeUnits)
+                {
+                    targets.AddRange(units[faction]);
+                }
+                //include buildings in list if includeUnits is set to true
+                if (includeBuildings)
+                {
+                    targets.AddRange(buildings[faction]);
+                }
+            }
+            return targets; //return the ones that are actually targets
+        }
+
+
     }
 }
