@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace MODEL_CODE
 {
-    abstract class Unit
+    abstract class Unit 
     {
         protected int x, y, health, maxHealth, speed, attack, attackRange;
         protected string faction, nameUnit;

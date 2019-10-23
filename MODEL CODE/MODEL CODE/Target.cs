@@ -54,5 +54,28 @@ namespace MODEL_CODE //both unit and building inherit from here
         {
             get { return maxHealth; }
         }
+
+        public double GetDistance(Target to)
+        { //used in unit and building manager
+            double xDistance = to.X - X;
+            double yDistance = to.Y - Y;
+
+            return Math.Sqrt(xDistance * xDistance + yDistance * yDistance);
+        }
+
+        public virtual void Destroy()
+        {
+            isDestroyed = true;
+        }
+
+        public void CheckHide()
+        { //hide a unit that has already been dead FOR A WHILE now
+            if (hideChecksBeforeInvisible == 0)
+                return;
+
+            hideChecksBeforeInvisible--;
+            isVisible = hideChecksBeforeInvisible > 0;
+        }
     }
 }
+
