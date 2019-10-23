@@ -7,22 +7,23 @@ using System.IO;
 
 namespace MODEL_CODE
 {
+    enum FactoryType //spawning specific types of factories
+    {
+        MELEE,
+        RANGED
+    }
+
     class FactoryBuilding : Building
     {
-        ResourceBuilding rb;
-        enum FactoryType //spawning specific types of factories
-        {
-            MELEE,
-            RANGED
-        }
-
-        private FactoryType factoryType;
+        private FactoryType factoryType; //using an int or string is also fine
         private int productionSpeed;
         private int spawnPoint; //we already have the x, we just need the y for the factory
+        private int spawnCost;
+        private int lastProducedRound = 0;
 
-        public FactoryBuilding(int x, int y, string faction) : base(x, y, 10, /*10,*/ 'F', faction/*, "FACTORY BUILDING", 0, 0, 0, "", 6, 0*/)
+        public FactoryBuilding(int x, int y, string faction, int mapHeight) : base(x, y, 100 /*could be 10*/, 'F', faction)
         {
-            if (y >= Map.mapSize - 1)
+            if (y >= mapHeight - 1)
             {
                 spawnPoint = y - 1;
             }
@@ -32,6 +33,7 @@ namespace MODEL_CODE
             }
             factoryType = (FactoryType)GameEngine.random.Next(0, 2);
             productionSpeed = GameEngine.random.Next(3, 7);
+            spawnCost = GameEngine.random.Next(15, 25); //consume resources to generate a unit
         }
 
         ////////////////////////////////////////////////////////
@@ -41,23 +43,14 @@ namespace MODEL_CODE
             string[] parameters = values.Split(','); //split strings into array of parameters
 
             x = int.Parse(parameters[1]);
-
             y = int.Parse(parameters[2]); //pass everything to int
-
             health = int.Parse(parameters[3]);
-
             maxHealth = int.Parse(parameters[4]);
-
             factoryType = (FactoryType)int.Parse(parameters[5]); //parse to int THEN resourceType
-
             productionSpeed = int.Parse(parameters[6]);
-
             spawnPoint = int.Parse(parameters[7]);
-
             faction = parameters[9];
-
             symbol = parameters[10][0]; //symbol is a char, returns the first character of the symbol 'string'
-
             isDestroyed = parameters[11] == "True" ? true : false; //makes sure are units are still dead during the reload
         }
 
@@ -73,19 +66,24 @@ namespace MODEL_CODE
             get { return productionSpeed; } //expose this for game engine spawn unit method
         }
 
-        public Unit CreateUnit() //declare unit variable
+        public int SpawnCost
         {
-    
+            get { return spawnCost; }
+        }
+
+        public bool CanProduce(int round) //check to see if a unit may be created
+        {
+            int roundsSinceProduced = round - lastProducedRound;
+            return roundsSinceProduced >= productionSpeed;
+        }
+
+        public Unit CreateUnit(int round) //declare unit variable
+        {   
+            lastProducedRound = round;
             Unit unit;
-
-           /* if (rb.resourcesGenerated == 50)
-            {
-                rb.resourcesGenerated -= 50;
-            }*/
-
             if (factoryType == FactoryType.MELEE)
             {
-                unit = new MeleeUnit(x, spawnPoint, faction); //moved here from map and program classes, efficiency
+                unit = new MeleeUnit(x, spawnPoint, faction);
             }
             else
             {
@@ -94,24 +92,6 @@ namespace MODEL_CODE
             return unit;
         }
 
-       /* public Unit CreateUnit() //declare unit variable //ATTEMPTED FACTORY RESOURCE SPAWN
-        {
-            Unit unit;
-            if (rb.resourcesGenerated == 50)
-            {
-                if (factoryType == FactoryType.MELEE)
-                {
-                    unit = new MeleeUnit(x, spawnPoint, faction); //moved here from map and program classes, efficiency
-                }
-                else
-                {
-                    unit = new RangedUnit(x, spawnPoint, faction);
-                }
-                return unit;
-            }
-            return rb.resourcesGenerated;
-        }
-        */
         private string GetFactoryTypeName()
         {
             return new string[] { "MELEE", "RANGED" }[(int)factoryType];
