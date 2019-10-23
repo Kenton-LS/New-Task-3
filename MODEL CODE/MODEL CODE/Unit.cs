@@ -6,21 +6,22 @@ using System.Threading.Tasks;
 
 namespace MODEL_CODE
 {
-    abstract class Unit 
+    abstract class Unit : Target // units are targets
     {
         protected int x, y, health, maxHealth, speed, attack, attackRange;
-        protected string faction, nameUnit;
+        protected string nameUnit;
         protected char symbol; //Mellee or ranged
         protected bool isAttacking = false; //set to false by default, doesn't need a parameter
-        protected bool isDestroyed = false;
+      
         public static Random random = new Random(); //to enable random in all classes
 
         public Unit(int x, int y, int health, int maxHealth, int speed, int attack, int attackRange, char symbol, string faction, string nameUnit) //CONSTRUCTOR
         {
             this.x = x; //Initialize everything
             this.y = y;
+
             this.health = health;
-            this.maxHealth = health; //NB
+            maxHealth = health; //NB
             this.speed = speed;
             this.attack = attack;
             this.attackRange = attackRange;
@@ -34,65 +35,52 @@ namespace MODEL_CODE
             string[] parameters = values.Split(','); //split strings into array of parameters
 
             x = int.Parse(parameters[1]);
-
             y = int.Parse(parameters[2]); //pass everything to int
-
             health = int.Parse(parameters[3]);
-
             maxHealth = int.Parse(parameters[4]);
-
             speed = int.Parse(parameters[5]);
-
             attack = int.Parse(parameters[6]);
-
             attackRange = int.Parse(parameters[7]);
-
             faction = parameters[8];
-
             symbol = parameters[9][0]; //symbol is a char, returns the first character of the symbol 'string'
-
             nameUnit = parameters[10];
-
             isDestroyed = parameters[11] == "True" ? true : false; //makes sure are units are still dead during the reload
         }
 
         public abstract string SaveGame();
 
-        public int X { get { return x; } set { x = value; } }
-
-        public int Y { get { return y; } set { y = value; } }
-
-        public int Health { get { return health; } set { health = value; } }
-
-        public int MaxHealth { get { return maxHealth; } }
-
-        public string Faction { get { return faction; } }
-
+        //public int X { get { return x; } set { x = value; } }
+        //public int Y { get { return y; } set { y = value; } }
+        //public int Health { get { return health; } set { health = value; } }
+        //public int MaxHealth { get { return maxHealth; } }
+        public int Speed { get { return speed; } }
+        //public string Faction { get { return faction; } }
         public char Symbol { get { return symbol; } }
-
-        public bool IsDestroyed { get { return isDestroyed; } }
-
+        //public bool IsDestroyed { get { return isDestroyed; } }
         public string NameUnit { get { return nameUnit; } }
 
         ///////////////////
        
         public virtual void Destroy() //death method
         {
+            Health = 0; //make certain health is 0
             isDestroyed = true;
             isAttacking = false;
             symbol = 'X';
         }
 
-        public virtual void Attack(Unit otherUnit)
+        public virtual bool Attack(Target target) ////returns true if target was destroyed
         {
             isAttacking = true;
-            otherUnit.Health -= attack;
+            target.Health -= attack;
 
-            if(otherUnit.Health <= 0)
+            if(target.Health <= 0)
             {
-                otherUnit.Health = 0;
-                otherUnit.Destroy();
+                target.Health = 0;
+                target.Destroy();
+                return true;
             }
+            return false;
         }
 
         public virtual void AttackBuilding(Building otherBuilding) //new
