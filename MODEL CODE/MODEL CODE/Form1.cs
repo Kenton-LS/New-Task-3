@@ -14,16 +14,18 @@ namespace MODEL_CODE
 {
     public partial class frm1 : Form
     { 
-
         GameEngine engine;
         Timer timer;
         Condition condition = Condition.PAUSED;
 
+        int mapWidth = 20;
+        int mapHeight = 20;
+        bool engineReset = true;
 
         public frm1()
         {
             InitializeComponent();
-            engine = new GameEngine(); //new game engine object
+            engine = new GameEngine(mapWidth, mapHeight); //new game engine object
             UpdateInterface();
 
             timer = new Timer();
@@ -43,9 +45,11 @@ namespace MODEL_CODE
                 lblMap.Text = engine.Winning + " IS VICTORIOUS\n" + lblMap.Text;
                 condition = Condition.ENDED;
                 btnStart.Text = "RESTART";
-            }
 
-      
+                numWidth.Enabled = true;
+                numHeight.Enabled = true;
+                engineReset = false;
+            }
         }
 
         private void UpdateInterface() //set unit display and update the round, as well as the UI overall
@@ -77,20 +81,37 @@ namespace MODEL_CODE
             {
                 if (condition == Condition.ENDED) //resets all before running 
                 {
-                    engine.Reset();
+                    engine.Reset(mapWidth, mapHeight);
                 }
                 timer.Start(); //runs game again
                 condition = Condition.RUNNING;
                 btnStart.Text = "PAUSE";
+
+                numWidth.Enabled = false;
+                numHeight.Enabled = false;
             }
         }
 
         private void btnSave_Click(object sender, EventArgs e) ////////////new
         {
-            engine.SaveGame2();
-            lblMap.Text = "LOADING 100%\n" + engine.MapDisplay;
+            engine.SaveGame();
+            lblMap.Text = "LOADING 100%\n" + lblMap.Text;
+        }
 
-            
+        private void NumWidth_ValueChanged(object sender, EventArgs e)
+        {
+            mapWidth = (int)numWidth.Value;
+            engine.Reset(mapWidth, mapHeight);
+            engineReset = true;
+            UpdateInterface();
+        }
+
+        private void NumHeight_ValueChanged(object sender, EventArgs e)
+        {
+            mapHeight = (int)numHeight.Value;
+            engine.Reset(mapWidth, mapHeight);
+            engineReset = true;
+            UpdateInterface();
         }
 
         private void btnRead_Click(object sender, EventArgs e)
@@ -101,6 +122,14 @@ namespace MODEL_CODE
         private void lblMap_Click(object sender, EventArgs e)
         {
 
+        }
+
+        private void btnRead_Click_1(object sender, EventArgs e)
+        {
+            engine.LoadGame();
+            lblMap.Text = "GAME LOADED\n" + engine.MapDisplay;
+            numWidth.Value = engine.LoadedMapWidth;
+            numHeight.Value = engine.LoadedMapHeight;
         }
     }
     public enum Condition

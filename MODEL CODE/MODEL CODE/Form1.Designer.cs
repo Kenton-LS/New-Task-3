@@ -93,6 +93,7 @@
             this.btnRead.TabIndex = 6;
             this.btnRead.Text = "LOAD";
             this.btnRead.UseVisualStyleBackColor = true;
+            this.btnRead.Click += new System.EventHandler(this.btnRead_Click_1);
             // 
             // rtbUnitInfo2
             // 
